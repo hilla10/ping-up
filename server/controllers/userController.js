@@ -2,6 +2,8 @@ import { use } from 'react';
 import User from '../models/User.js';
 import { uploadImage } from '../config/upload.js';
 import Connection from '../models/Connection.js';
+import Post from '../models/Post.js';
+import { inngest } from '../inngest/index.js';
 
 // Get User Data using userId
 export const getUserData = async (req, res) => {
@@ -182,10 +184,18 @@ export const sendConnectionRequest = async (req, res) => {
     });
 
     if (!connection) {
-      await Connection.create({
+      const newConnection = await Connection.create({
         from_user_id: userId,
         to_user_id: id,
       });
+
+      await inngest.send({
+        name: 'app/connection-request',
+        data: {
+          connectionId: newConnection._id,
+        },
+      });
+
       return res.json({
         success: true,
         message: 'Connection request sent successfully',
@@ -201,6 +211,7 @@ export const sendConnectionRequest = async (req, res) => {
       message: 'Connection request pending',
     });
   } catch (error) {
+    console.log(error);
     res.json({ success: false, message: error.message });
     return null;
   }
@@ -232,6 +243,7 @@ export const getUserConnections = async (req, res) => {
       pendingConnection,
     });
   } catch (error) {
+    console.log(error);
     res.json({ success: false, message: error.message });
     return null;
   }
@@ -265,6 +277,26 @@ export const acceptConnectionRequest = async (req, res) => {
 
     res.json({ success: true, message: 'Connection accepted successfully' });
   } catch (error) {
+    console.log(error);
+    res.json({ success: false, message: error.message });
+    return null;
+  }
+};
+
+// Get User
+export const getUserProfile = async (req, res) => {
+  try {
+    const { profileId } = req.body;
+    const profile = await User.findById(profileId);
+
+    if (!profile) {
+      return res.json({ success: false, message: 'Profile NOt Found' });
+    }
+
+    const posts = await Post.find({ user: profileId }).populate('user');
+    res.json({ success: true, profile, posts });
+  } catch (error) {
+    console.log(error);
     res.json({ success: false, message: error.message });
     return null;
   }
