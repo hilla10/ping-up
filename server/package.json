@@ -21,6 +21,7 @@
     "inngest": "^3.40.1",
     "mongoose": "^8.17.0",
     "multer": "^2.0.2",
+    "nodemailer": "^7.0.5",
     "npm": "^11.5.2"
   },
   "devDependencies": {
