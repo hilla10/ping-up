@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import Sidebar from '../components/Sidebar';
 import { Outlet } from 'react-router-dom';
 import { Menu, X } from 'lucide-react';
-import Loading from '../components/loading';
+import Loading from '../components/Loading';
 import { useSelector } from 'react-redux';
 
 const Layout = () => {

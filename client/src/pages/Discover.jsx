@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
 import { Search } from 'lucide-react';
 import UserCard from '../components/UserCard';
-import Loading from '../components/loading';
+import Loading from '../components/Loading';
 import api from '../api/axios';
 import { useAuth } from '@clerk/clerk-react';
 import { useDispatch } from 'react-redux';
