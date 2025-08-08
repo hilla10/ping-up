@@ -11,6 +11,9 @@ export const addUserStory = async (req, res) => {
     const media = req.file;
     let media_url = '';
 
+    console.log('content', content);
+    console.log('background_color', background_color);
+
     // upload media to imagekit
     if (media_type === 'image' || media_type === 'video') {
       const fileBuffer = fs.readFileSync(media.path);
@@ -27,7 +30,7 @@ export const addUserStory = async (req, res) => {
       content,
       media_url,
       media_type,
-      background_url,
+      background_color,
     });
 
     //   Schedule story deletion after 24 hours

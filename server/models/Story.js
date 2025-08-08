@@ -5,7 +5,7 @@ const storySchema = new Schema(
     user: { type: String, ref: 'User', required: true },
     content: { type: String },
     media_url: { type: String },
-    story_type: {
+    media_type: {
       type: String,
       enum: ['text', 'image', 'video'],
     },

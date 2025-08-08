@@ -1,11 +1,6 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import {
-  dummyConnectionsData as connections,
-  dummyFollowersData as followers,
-  dummyFollowingData as following,
-  dummyPendingConnectionsData as pendingConnections,
-} from '../assets/assets';
+
 import {
   UserCheck,
   UserRoundPen,
@@ -13,10 +8,21 @@ import {
   UserPlus,
   MessageSquare,
 } from 'lucide-react';
+import { useDispatch, useSelector } from 'react-redux';
+import { useAuth } from '@clerk/clerk-react';
+import { fetchConnections } from '../features/connections/connectionSlice';
+import toast from 'react-hot-toast';
+import api from '../api/axios';
 
 const Connection = () => {
   const navigate = useNavigate();
   const [currentTab, setCurrentTab] = useState('Followers');
+  const { connections, pendingConnections, followers, following } = useSelector(
+    (state) => state.connections
+  );
+
+  const dispatch = useDispatch();
+  const { getToken } = useAuth();
 
   const dataArray = [
     { label: 'Followers', value: followers, Icon: Users },
@@ -24,6 +30,52 @@ const Connection = () => {
     { label: 'Pending', value: pendingConnections, Icon: UserRoundPen },
     { label: 'Connections', value: connections, Icon: UserPlus },
   ];
+
+  const handleUnfollow = async (userId) => {
+    try {
+      const token = await getToken();
+      const { data } = await api.post(
+        '/api/user/unfollow',
+        { id: userId },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      if (data.success) {
+        toast.success(data.message);
+        dispatch(fetchConnections(token));
+      } else {
+        toast.error(data.message);
+      }
+    } catch (error) {
+      toast.error(error.message);
+    }
+  };
+
+  const acceptConnection = async (userId) => {
+    try {
+      const token = await getToken();
+      const { data } = await api.post(
+        '/api/user/accept',
+        { id: userId },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      if (data.success) {
+        toast.success(data.message);
+        dispatch(fetchConnections(token));
+      } else {
+        toast.error(data.message);
+      }
+    } catch (error) {
+      toast.error(error.message);
+    }
+  };
+
+  useEffect(() => {
+    getToken().then((token) => {
+      dispatch(fetchConnections(token));
+    });
+  }, []);
 
   return (
     <div className='h-screen overflow-y-scroll bg-slate-50'>
@@ -43,7 +95,7 @@ const Connection = () => {
             <div
               key={index}
               className='flex flex-col items-center justify-center gap-1 border h-20 w-40 border-gray-200 bg-white shadow rounded-md'>
-              <b>{value.length}</b>
+              <b>{value?.length ? value.length : '0'}</b>
               <p className='text-slate-600'>{label}</p>
             </div>
           ))}
@@ -102,12 +154,16 @@ const Connection = () => {
                       </button>
                     }
                     {currentTab === 'Following' && (
-                      <button className='w-full p-2 text-sm rounded bg-slate-100 hover:bg-slate-200 text-black active:scale-95 transition cursor-pointer '>
+                      <button
+                        onClick={() => handleUnfollow(user._id)}
+                        className='w-full p-2 text-sm rounded bg-slate-100 hover:bg-slate-200 text-black active:scale-95 transition cursor-pointer '>
                         Unfollow
                       </button>
                     )}
                     {currentTab === 'Pending' && (
-                      <button className='w-full p-2 text-sm rounded bg-slate-100 hover:bg-slate-200 text-black active:scale-95 transition cursor-pointer '>
+                      <button
+                        onClick={() => acceptConnection(user._id)}
+                        className='w-full p-2 text-sm rounded bg-slate-100 hover:bg-slate-200 text-black active:scale-95 transition cursor-pointer '>
                         Accept
                       </button>
                     )}

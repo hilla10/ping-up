@@ -1,6 +1,8 @@
+import { useAuth } from '@clerk/clerk-react';
 import { ArrowLeft, Sparkle, TextIcon, Upload } from 'lucide-react';
 import React, { useState } from 'react';
 import toast from 'react-hot-toast';
+import api from '../api/axios';
 
 const StoryModel = ({ setShowModal, fetchStories }) => {
   const bgColors = [
@@ -11,21 +13,90 @@ const StoryModel = ({ setShowModal, fetchStories }) => {
     '#ca8a04',
     '#0d9488',
   ];
+
+  const { getToken } = useAuth();
+
   const [mode, setMode] = useState('text');
   const [background, setBackground] = useState(bgColors[0]);
   const [text, setText] = useState('');
   const [media, setMedia] = useState(null);
   const [previewUrl, setPreviewUrl] = useState(null);
 
+  const MAX_VIDEO_DURATION = 120; // seconds
+  const MAX_VIDEO_SIZE_MB = 50; //MB
+
   const handleMediaUpload = (e) => {
     const file = e.target.files?.[0];
     if (file) {
-      setMedia(file);
-      setPreviewUrl(URL.createObjectURL(file));
+      if (file.type.startsWith('video')) {
+        if (file.size > MAX_VIDEO_SIZE_MB * 1024 * 1024) {
+          toast.error(`Video file cannot exceed ${MAX_VIDEO_SIZE_MB} MB.`);
+          setMedia(null);
+          setPreviewUrl(null);
+          return;
+        }
+
+        const video = document.createElement('video');
+
+        video.preload = 'metadata';
+        video.onloadedmetadata = () => {
+          window.URL.revokeObjectURL(video.src);
+
+          if (video.duration > MAX_VIDEO_DURATION) {
+            toast.error('Video duration cannot exceed 1 minute');
+            setMedia(null);
+            setPreviewUrl(null);
+          } else {
+            setMedia(file);
+            setPreviewUrl(URL.createObjectURL(file));
+            setText('');
+            setMode('media');
+          }
+        };
+        video.src = URL.createObjectURL(file);
+      } else if (file.type.startsWith('image')) {
+        setMedia(file);
+        setPreviewUrl(URL.createObjectURL(file));
+        setText('');
+        setMode('media');
+      }
     }
   };
 
-  const handleCreateStory = async () => {};
+  const handleCreateStory = async () => {
+    const media_type =
+      mode === 'media'
+        ? media?.type.startsWith('image')
+          ? 'image'
+          : 'video'
+        : 'text';
+
+    // Validate text stories
+    if (media_type === 'text' && !text.trim()) {
+      throw new Error('Please enter some text');
+    }
+
+    // Create FormData (correct variable name)
+    const formData = new FormData();
+    formData.append('content', text);
+    formData.append('media_type', media_type);
+    if (media) formData.append('media', media);
+    formData.append('background_color', background);
+
+    const token = await getToken();
+
+    const { data } = await api.post('/api/story/create', formData, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+
+    if (!data.success) {
+      throw new Error(data.message || 'Something went wrong');
+    }
+
+    setShowModal(false);
+    fetchStories();
+    return data; // ✅ allows toast.promise to know it was successful
+  };
 
   return (
     <div className='fixed inset-0 min-h-screen bg-black/90  z-110 flex items-center justify-center '>
@@ -98,10 +169,7 @@ const StoryModel = ({ setShowModal, fetchStories }) => {
               type='file'
               accept='image/*,video/*'
               className='hidden'
-              onChange={(e) => {
-                handleMediaUpload(e);
-                setMode('media');
-              }}
+              onChange={handleMediaUpload}
             />
             <Upload size={18} />
             Photo/Video
@@ -110,11 +178,14 @@ const StoryModel = ({ setShowModal, fetchStories }) => {
 
         <button
           onClick={() =>
-            toast.promise(handleCreateStory(), {
-              loading: 'Saving...',
-              success: <p>Story Added</p>,
-              error: (e) => <p>{e.message}</p>,
-            })
+            toast.promise(
+              handleCreateStory(), // returns Promise
+              {
+                loading: 'Saving...',
+                success: 'Story created successfully!',
+                error: (err) => err.message || 'Failed to create story',
+              }
+            )
           }
           className='flex items-center justify-center gap-2 text-white py-3 mt-4 w-full rounded bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 active:scale-95 transition cursor-pointer'>
           <Sparkle size={18} />

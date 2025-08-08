@@ -1,11 +1,57 @@
+import { useAuth } from '@clerk/clerk-react';
 import { MapPin, MessageCircle, Plus, UserPlus } from 'lucide-react';
-import { dummyUserData } from '../assets/assets';
+import toast from 'react-hot-toast';
+import { useDispatch, useSelector } from 'react-redux';
+import { useNavigate } from 'react-router-dom';
+import api from '../api/axios';
+import { fetchUser } from '../features/user/userSlice';
 const UserCard = ({ user }) => {
-  const currentUser = dummyUserData;
+  const currentUser = useSelector((state) => state.user.value);
+  const { getToken } = useAuth();
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const handleFollow = async () => {
+    const token = await getToken();
+    try {
+      const { data } = await api.post(
+        '/api/user/follow',
+        { id: user._id },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
 
-  const handleFollow = async () => {};
+      if (data.success) {
+        toast.success(data.message);
+        dispatch(fetchUser(token));
+      } else {
+        toast.error(data.message);
+      }
+    } catch (error) {
+      toast.error(error.message);
+    }
+  };
 
-  const handleConnectionRequest = async () => {};
+  const handleConnectionRequest = async () => {
+    if (currentUser.connections.includes(user._id)) {
+      return navigate('/messages/' + user._id);
+    }
+    const token = await getToken();
+
+    try {
+      const { data } = await api.post(
+        '/api/user/connect',
+        { id: user._id },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      if (data.success) {
+        toast.success(data.message);
+      } else {
+        toast.error(data.message);
+      }
+    } catch (error) {
+      toast.error(error.message);
+    }
+  };
 
   return (
     <div
@@ -45,7 +91,10 @@ const UserCard = ({ user }) => {
           <UserPlus className='w-4 h-4 ' />
           {currentUser?.following.includes(user._id) ? 'Following' : 'Follow'}
         </button>
-        <button className='flex items-center justify-center w-16 border text-slate-500 group rounded-md cursor-pointer active:scale-95 transition'>
+        {/* Connection Request Button / Message Button */}
+        <button
+          onClick={handleConnectionRequest}
+          className='flex items-center justify-center w-16 border text-slate-500 group rounded-md cursor-pointer active:scale-95 transition'>
           {currentUser.connections.includes(user._id) ? (
             <MessageCircle className='w-4 h-4 group-hover:scale-105 transition ' />
           ) : (

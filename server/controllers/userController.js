@@ -207,7 +207,7 @@ export const sendConnectionRequest = async (req, res) => {
       });
     }
     return res.json({
-      success: true,
+      success: false,
       message: 'Connection request pending',
     });
   } catch (error) {
@@ -229,7 +229,7 @@ export const getUserConnections = async (req, res) => {
     const followers = user.followers;
     const following = user.following;
 
-    const pendingConnection = (
+    const pendingConnections = (
       await Connection.find({ to_user_id: userId, status: 'pending' }).populate(
         'from_user_id'
       )
@@ -240,7 +240,7 @@ export const getUserConnections = async (req, res) => {
       connections,
       followers,
       following,
-      pendingConnection,
+      pendingConnections,
     });
   } catch (error) {
     console.log(error);
