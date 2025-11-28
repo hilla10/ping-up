@@ -42,8 +42,9 @@ Simple and secure login with Clerk (Email, Google, GitHub).
 
 ---
 
-## 🎨 Screenshots  
-
+<div align="center">
+ <img src="./client/public/screenshot-for-readme.png" style=" border-radius: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.15); transition: transform 0.3s; cursor: pointer;" />
+</div>
 
 ---
 
@@ -146,7 +147,7 @@ Author: Hailemichael
 
 🌐 Portfolio: [ portfolio](https://portfolio-rho-gules-15.vercel.app/)
 
-💼 LinkedIn:[Linkedin](https://www.linkedin.com/in/hailemichaelnegusse/)
+💼 LinkedIn: [Linkedin](https://www.linkedin.com/in/hailemichaelnegusse/)
 
 
 
