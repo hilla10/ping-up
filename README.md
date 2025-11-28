@@ -11,7 +11,7 @@
 [![Node.js](https://img.shields.io/badge/Node.js-18-green?logo=node.js)](https://nodejs.org/)
 [![MongoDB](https://img.shields.io/badge/MongoDB-6.0-brightgreen?logo=mongodb)](https://www.mongodb.com/)
 [![Tailwind CSS](https://img.shields.io/badge/TailwindCSS-4.1-blue?logo=tailwindcss)](https://tailwindcss.com/)
-[![Live Demo](https://img.shields.io/badge/Live-Demo-purple)](https://chat-app-f2r7.onrender.com/)
+[![Live Demo](https://img.shields.io/badge/Live-Demo-purple)](https://ping-up-three.vercel.app/)
 
 
 ---
